@@ -1,0 +1,27 @@
+{
+  "name": "build-and-deploy-prod",
+  "description": "Trigger for master branch",
+  "trigger_template": {
+    "repo_name": "your-app-repo",
+    "branch_name": "master"
+  },
+  "substitutions": {
+    "_ENV": "prod",
+    "_ENV_BRANCH": "master"
+  },
+  "filename": "cloudbuild.yaml"
+}
+---
+{
+  "name": "build-and-deploy-dev",
+  "description": "Trigger for development branch",
+  "trigger_template": {
+    "repo_name": "your-app-repo",
+    "branch_name": "development"
+  },
+  "substitutions": {
+    "_ENV": "dev",
+    "_ENV_BRANCH": "development"
+  },
+  "filename": "cloudbuild.yaml"
+}

@@ -1,0 +1,35 @@
+steps:
+- name: 'maven:3.9.6-eclipse-temurin-17'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      mvn clean verify
+
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build','-t','us-central1-docker.pkg.dev/$PROJECT_ID/gcp-poc/java-app:$SHORT_SHA','.']
+
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push','us-central1-docker.pkg.dev/$PROJECT_ID/gcp-poc/java-app:$SHORT_SHA']
+
+- name: 'gcr.io/cloud-builders/git'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      git config --global user.email "ci-bot@example.com"
+      git config --global user.name "CI Bot"
+      git clone https://github.com/YOUR_ORG/YOUR_GITOPS_REPO.git
+      cd YOUR_GITOPS_REPO/k8s/gitops/overlays/${_ENV}
+      kustomize edit set image us-central1-docker.pkg.dev/$PROJECT_ID/gcp-poc/java-app=us-central1-docker.pkg.dev/$PROJECT_ID/gcp-poc/java-app:$SHORT_SHA
+      git add kustomization.yaml
+      git commit -m "Update image to $SHORT_SHA"
+      git push https://x-access-token:${GITHUB_TOKEN}@github.com/YOUR_ORG/YOUR_GITOPS_REPO.git HEAD:${_ENV_BRANCH}
+secretEnv: ['GITHUB_TOKEN']
+
+availableSecrets:
+  secretManager:
+  - versionName: projects/$PROJECT_ID/secrets/GITHUB_TOKEN/versions/latest
+    env: 'GITHUB_TOKEN'
+
+timeout: '1200s'
